@@ -68,7 +68,7 @@ export const useWorkspaceStore = defineStore('workspace', {
     },
     // U
     async updateWorkspace(payload) {
-      const {id, title, content, poster} = payload
+      const {id, title, content} = payload
       await fetch(
         `https://asia-northeast3-heropy-api.cloudfunctions.net/api/notion/workspaces/${id}`,
         {
@@ -79,14 +79,14 @@ export const useWorkspaceStore = defineStore('workspace', {
             'username': 'GyeongChan'
           },
           body: JSON.stringify({
-            id,
             title,
             content,
-            poster
           })
         }
       )
+      this.readWorkspaces()
     },
+    // D
     async deleteWorkspace(id) {
       await fetch(
         `https://asia-northeast3-heropy-api.cloudfunctions.net/api/notion/workspaces/${id}`,

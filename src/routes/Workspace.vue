@@ -6,13 +6,17 @@
   <section :key="$route.params.id">
     <h1 
       ref="title"
-      contenteditable>
+      placeholder="제목 없음"
+      contenteditable
+      @blur="onInput">
       {{ workspaceStore.workspaceDetails.title }}
     </h1>
     <p 
-      ref="contnet"
-      contenteditable>
-      {{ workspaceStore.workspaceDetails.content }}
+      ref="content"
+      placeholder="내용을 입력하세요!"
+      contenteditable
+      @blur="onInput"
+      v-html="workspaceStore.workspaceDetails.content">
     </p>
   </section>
 </template>
@@ -34,13 +38,29 @@ export default {
   created() {
     this.workspaceStore.readWorkspaceDetails(this.$route.params.id)
   },
-  onInput() {
+  methods: {
+    onInput() {
     // const title = e.target.value
-    const title = this.$refs.title.textContent
-    const content = this.$refs.content.innerHTML
+      const title = this.$refs.title.textContent
+      const content = this.$refs.content.innerHTML
+      
+      if(!this.$refs.content.textContent.trim()) {
+        this.$refs.content.innerHTML = ''
+      }
+      this.workspaceStore.updateWorkspace({
+        id: this.$route.params.id,
+        title,
+        content
+      })
+    }
   }
 }
 </script>
-<style lang="">
-  
+<style lang="scss" scoped>
+  [contenteditable] {
+    &:empty::before{
+      content: attr(placeholder);
+      color: lightgray;
+    }
+  }
 </style>

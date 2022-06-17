@@ -2,7 +2,10 @@
   <TheHeader />
   <h1>Workspace</h1>
   <button @click="workspaceStore.createWorkspace">
-    워크스페이스 생성!
+    생성
+  </button>
+  <button @click="workspaceStore.readWorkspaces">
+    조회
   </button>
   <section :key="$route.params.id">
     <div class="poster">
@@ -22,14 +25,14 @@
       placeholder="제목 없음"
       contenteditable
       @blur="onInput">
-      {{ workspaceStore.workspaceDetails.title }}
+      {{ workspaceStore.workspace.title }}
     </h1>
     <p 
       ref="content"
       placeholder="내용을 입력하세요!"
       contenteditable
       @blur="onInput"
-      v-html="workspaceStore.workspaceDetails.content">
+      v-html="workspaceStore.workspace.content">
     </p>
   </section>
 </template>
@@ -41,19 +44,18 @@ import { useWorkspaceStore } from '~/store/workspace'
 import TheHeader from '../components/TheHeader.vue'
 
 export default {
-  components: {
-    TheHeader
-  },
+  components: { TheHeader },
   computed: {
     ...mapStores(useWorkspaceStore)
   },
   watch: {
     $route() {
-      this.workspaceStore.readWorkspaceDetails(this.$route.params.id)
+      this.workspaceStore.readWorkspace(this.$route.params.id)
+      this.workspaceStore.findWorkspacePath(this.$route.params.id)
     }
   },
   created() {
-    this.workspaceStore.readWorkspaceDetails(this.$route.params.id)
+    this.workspaceStore.readWorkspace(this.$route.params.id)
   },
   methods: {
     onInput() {
@@ -61,6 +63,9 @@ export default {
       const title = this.$refs.title.textContent
       const content = this.$refs.content.innerHTML
       
+      if (!title.trim()) {
+        this.$refs.title.innerHTML = ''
+      }
       if(!this.$refs.content.textContent.trim()) {
         this.$refs.content.innerHTML = ''
       }
@@ -95,7 +100,7 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
   [contenteditable] {
     &:empty::before{
       content: attr(placeholder);

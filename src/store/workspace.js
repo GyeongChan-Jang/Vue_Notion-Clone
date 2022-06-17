@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import router from '~/routes'
 
 // 이름 정의 컨벤션: use + 모듈이름 + store
 export const useWorkspaceStore = defineStore('workspace', {
@@ -7,7 +6,8 @@ export const useWorkspaceStore = defineStore('workspace', {
   state() {
     return {
       workspace: {},
-      workspaceDetails: [],
+      workspaces: [],
+      workspacesLoaded: false, // 서버에서 데이터 가지고 오고나면 true로 갱신됨
       currentWorkspacePath: [] // 어떤 구조로 올지 모른다면 null로도 설정 가능(명시적)
     }
   },
@@ -25,21 +25,27 @@ export const useWorkspaceStore = defineStore('workspace', {
       })
       console.log(workspace)
       this.readWorkspaces()
+      window.location.href = `/workspaces/${workspace.id}`
     },
     async readWorkspaces() {
       const workspaces = await request({
         method: 'GET'
       })
       console.log(workspaces)
-      this.workspace = workspaces
+      this.workspaces = workspaces
+      this.workspacesLoaded = true
+
+      if (!this.workspaces.length) {
+        this.createWorkspace()
+      }
     },
-    async readWorkspaceDetails(id) {
-      const workspaceDetails = await request({
+    async readWorkspace(id) {
+      const workspace = await request({
         method: 'GET',
         id
       })
-      console.log(workspaceDetails)
-      this.workspaceDetails = workspaceDetails
+      console.log(workspace)
+      this.workspace = workspace
     },
     // U
     async updateWorkspace(payload) {
@@ -64,8 +70,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       })
       this.readWorkspaces()
     },
-    findWorkspacePath() {
-      const currentWorkspaceId = router.currentRoute.value.params.id
+    findWorkspacePath(currentWorkspaceId) {
       function find(workspace, parents) {
         if (currentWorkspaceId === workspace.id) {
           this.currentWorkspacePath = [...parents, workspace]
@@ -76,7 +81,7 @@ export const useWorkspaceStore = defineStore('workspace', {
           })
         }
       }
-      this.workspaceDetails.forEach((workspace) => {
+      this.workspaces.forEach((workspace) => {
         find(workspace, [])
       })
     }
@@ -88,7 +93,7 @@ async function request(options) {
   const res = await fetch(
     `https://asia-northeast3-heropy-api.cloudfunctions.net/api/notion/workspaces/${id}`,
     {
-      method: `${method}`,
+      method,
       headers: {
         'content-type': 'application/json',
         apikey: 'FcKdtJs202204',
